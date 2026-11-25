@@ -1,0 +1,1311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MANDI HOUSE | Experience The Taste of Authentic Mandi</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@700&display=swap" rel="stylesheet" />
+</head>
+<body class="bg-[#FAF7F2] text-stone-900">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useMemo, useEffect } = React;
+
+    const STORAGE_KEY = 'mandi_house_live_state_v1';
+
+    const INITIAL_SETTINGS = {
+      restaurantName: 'MANDI HOUSE',
+      isStoreOpen: true,
+      autoScheduleHours: true,
+      openTime: '12:00',
+      closeTime: '02:00',
+      logoUrl: '',
+      heroCoverUrl: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1800&q=80',
+      phone: '0322-9762904',
+      whatsapp: '923229762904',
+      address: 'Opposite Taj Masjid, Near Nawan Kot Chowk, Khanpur',
+      openingHours: '12:00 PM - 02:00 AM',
+      deliveryCharge: 150,
+      minOrderAmount: 500,
+      freeDeliveryThreshold: 3000,
+      bankName: 'Meezan Bank',
+      bankAccountTitle: 'Mandi House Restaurant',
+      bankAccountNumber: 'PK00MEZN0000000000000000',
+      easypaisaNumber: '0322-9762904',
+      jazzcashNumber: '0322-9762904',
+      mobileAccountTitle: 'Malik Mubeen Ahmad'
+    };
+
+    const INITIAL_CATEGORIES = [
+      'Chicken Mandi',
+      'Mutton Mandi',
+      'Beef Mandi',
+      'BBQ & Grills',
+      'Platters',
+      'Rice & Special Dishes',
+      'Drinks',
+      'Desserts',
+      'Family Deals'
+    ];
+
+    const INITIAL_PRODUCTS = [
+      {
+        id: 'prod-1',
+        name: 'Chicken Sajji',
+        category: 'Chicken Mandi',
+        description: 'Authentic Balochi & Arabian whole charcoal-roasted chicken marinated in rock salt & citrus, served over fragrant Mandi rice.',
+        image: 'https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?auto=format&fit=crop&w=800&q=80',
+        isAvailable: true,
+        isBestSeller: true,
+        variants: [
+          { id: 'v1-half', name: 'Half Sajji + Rice', price: 1050 },
+          { id: 'v1-full', name: 'Full Sajji + Rice', price: 1850 }
+        ]
+      },
+      {
+        id: 'prod-2',
+        name: 'Chicken Karahi',
+        category: 'Rice & Special Dishes',
+        description: 'Traditional wok-cooked tender chicken simmered in fresh tomatoes, green chilies, ginger juliennes, and crushed black pepper.',
+        image: 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?auto=format&fit=crop&w=800&q=80',
+        isAvailable: true,
+        isBestSeller: true,
+        variants: [
+          { id: 'v2-half', name: 'Half (Serves 2)', price: 1450 },
+          { id: 'v2-full', name: 'Full (Serves 4)', price: 2700 }
+        ]
+      },
+      {
+        id: 'prod-3',
+        name: 'Grill Fish',
+        category: 'BBQ & Grills',
+        description: 'Charcoal-grilled river Rahu marinated overnight in Lahori spices, lemon juice, and ajwain, served with tamarind chutney.',
+        image: 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=800&q=80',
+        isAvailable: true,
+        isBestSeller: true,
+        variants: [
+          { id: 'v3-500', name: '500g Fillet', price: 1600 },
+          { id: 'v3-1kg', name: '1 Kg Whole', price: 3000 }
+        ]
+      },
+      {
+        id: 'prod-4',
+        name: 'Seekh Kabab',
+        category: 'BBQ & Grills',
+        description: 'Juicy hand-minced beef and chicken seekh kababs skewered over live glowing embers with fresh coriander and roasted cumin.',
+        image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=800&q=80',
+        isAvailable: true,
+        isBestSeller: true,
+        variants: [
+          { id: 'v4-4', name: '4 Skewers', price: 950 },
+          { id: 'v4-8', name: '8 Skewers (Family)', price: 1800 }
+        ]
+      },
+      {
+        id: 'prod-5',
+        name: 'Royal Zarda',
+        category: 'Desserts',
+        description: 'Saffron-infused sweet basmati rice garnished with khoya, roasted almonds, pistachios, raisins, and silver varq.',
+        image: 'https://images.unsplash.com/photo-1589302168068-964664d93dc0?auto=format&fit=crop&w=800&q=80',
+        isAvailable: true,
+        isBestSeller: false,
+        variants: [
+          { id: 'v5-bowl', name: 'Single Bowl', price: 550 },
+          { id: 'v5-box', name: 'Family Box (1 Kg)', price: 1400 }
+        ]
+      }
+    ];
+
+    const INITIAL_RIDERS = [
+      { id: 'r-1', code: 'MH-R01', name: 'Kamran Bhatti', phone: '0301-4455667', address: 'Nawan Kot Chowk, Khanpur', loginId: 'rider1@mandihouse.pk', password: 'rider123', active: true },
+      { id: 'r-2', code: 'MH-R02', name: 'Zeeshan Malik', phone: '0312-8899001', address: 'Model Town, Khanpur', loginId: 'rider2@mandihouse.pk', password: 'rider123', active: true }
+    ];
+
+    const INITIAL_COUPONS = [
+      { id: 'c-1', code: 'MANDI10', type: 'percentage', value: 10, minOrder: 1000, active: true },
+      { id: 'c-2', code: 'WELCOME250', type: 'fixed', value: 250, minOrder: 1500, active: true }
+    ];
+
+    const ORDER_STATUSES = [
+      'Order Received',
+      'Order Confirmed',
+      'Preparing',
+      'Ready for Dispatch',
+      'Out for Delivery',
+      'Delivered',
+      'Cancelled'
+    ];
+
+    const INITIAL_ORDERS = [
+      {
+        id: 'ord-101',
+        orderNumber: 'MH-20261125-4821',
+        customerName: 'Usman Tariq',
+        customerPhone: '0300-7654321',
+        deliveryArea: 'Nawan Kot Chowk, Khanpur',
+        deliveryAddress: 'House 14, Street 3, Near Taj Masjid, Nawan Kot Chowk',
+        paymentMethod: 'Cash on Delivery',
+        paymentStatus: 'Pending',
+        transactionRef: '',
+        items: [{ productName: 'Chicken Sajji', variantName: 'Full Sajji + Rice', quantity: 1, totalPrice: 1850 }],
+        subtotal: 1850,
+        deliveryFee: 150,
+        discountAmount: 0,
+        grandTotal: 2000,
+        status: 'Out for Delivery',
+        riderId: 'r-1',
+        createdAt: '11:45 AM'
+      }
+    ];
+
+    function loadSavedState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return null;
+        return JSON.parse(raw);
+      } catch {
+        return null;
+      }
+    }
+
+    function MandiHouseLogo({ logoUrl, size = 'md' }) {
+      const dims = size === 'lg' ? 'w-20 h-20' : size === 'hero' ? 'w-24 h-24' : 'w-14 h-14';
+      if (logoUrl) {
+        return <img src={logoUrl} alt="MANDI HOUSE" className={`${dims} rounded-full object-cover border-2 border-[#FFD100] shadow-xl shrink-0`} />;
+      }
+      return (
+        <div className={`${dims} rounded-full bg-[#9E141A] border-2 border-[#FFD100] flex items-center justify-center shadow-xl shrink-0 overflow-hidden`}>
+          <svg viewBox="0 0 120 120" className="w-full h-full">
+            <circle cx="60" cy="60" r="56" fill="#9E141A" stroke="#FFD100" strokeWidth="3" />
+            <path d="M44 26 L60 16 L76 26 L70 30 L50 30 Z" fill="#FFD100" />
+            <text
+              x="60"
+              y="66"
+              textAnchor="middle"
+              fill="#FFD100"
+              stroke="#1A0507"
+              strokeWidth="2.5"
+              paintOrder="stroke"
+              fontSize="24"
+              fontWeight="900"
+              style={{ fontFamily: "'Noto Nastaliq Urdu', serif" }}
+            >
+              مندی ہاؤس
+            </text>
+            <text x="60" y="88" textAnchor="middle" fill="#FFFFFF" fontSize="10.5" fontWeight="900" letterSpacing="1.8">
+              MANDI HOUSE
+            </text>
+          </svg>
+        </div>
+      );
+    }
+
+    function ProductCard({ product, onAddToCart, dark = false }) {
+      const [selectedVariant, setSelectedVariant] = useState(product.variants[0]);
+      const [qty, setQty] = useState(1);
+      const [added, setAdded] = useState(false);
+
+      const activeVar = product.variants.find((v) => v.id === selectedVariant?.id) || product.variants[0];
+
+      const handleAdd = () => {
+        onAddToCart({
+          productId: product.id,
+          productName: product.name,
+          image: product.image,
+          variantId: activeVar.id,
+          variantName: activeVar.name,
+          unitPrice: activeVar.price,
+          quantity: qty
+        });
+        setAdded(true);
+        setTimeout(() => setAdded(false), 1000);
+      };
+
+      return (
+        <div className={`rounded-2xl overflow-hidden border transition flex flex-col justify-between ${dark ? 'bg-[#240B0D] border-[#FFD100]/25 text-white' : 'bg-white border-stone-200 text-stone-900 shadow-sm hover:shadow-lg'}`}>
+          <div>
+            <div className="relative h-48 overflow-hidden bg-stone-800">
+              <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+              <span className="absolute top-3 left-3 bg-[#B81D24] text-[#FFD100] text-xs font-extrabold px-3 py-1 rounded-full">
+                {product.category}
+              </span>
+              <span className={`absolute top-3 right-3 text-xs font-bold px-2.5 py-1 rounded-full ${product.isAvailable ? 'bg-emerald-600 text-white' : 'bg-red-700 text-white'}`}>
+                {product.isAvailable ? 'Available' : 'Sold Out'}
+              </span>
+            </div>
+            <div className="p-5 space-y-3">
+              <div className="flex justify-between items-start gap-2">
+                <h3 className="text-xl font-black">{product.name}</h3>
+                <span className="text-sm font-black text-[#B81D24] bg-[#FFD100] px-2.5 py-1 rounded-lg">
+                  Rs. {activeVar.price.toLocaleString()}
+                </span>
+              </div>
+              <p className={`text-xs leading-relaxed ${dark ? 'text-stone-300' : 'text-stone-600'}`}>{product.description}</p>
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {product.variants.map((v) => (
+                  <button
+                    key={v.id}
+                    type="button"
+                    onClick={() => setSelectedVariant(v)}
+                    className={`text-xs font-bold px-3 py-1.5 rounded-lg border ${activeVar.id === v.id ? 'bg-[#B81D24] text-[#FFD100] border-[#B81D24]' : 'border-stone-300 text-stone-600 bg-white'}`}
+                  >
+                    {v.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="p-5 pt-0 flex items-center gap-3">
+            <div className="flex items-center border rounded-xl overflow-hidden">
+              <button type="button" onClick={() => setQty(Math.max(1, qty - 1))} className="px-3 py-2 font-bold">-</button>
+              <span className="px-2.5 text-sm font-bold">{qty}</span>
+              <button type="button" onClick={() => setQty(qty + 1)} className="px-3 py-2 font-bold">+</button>
+            </div>
+            <button
+              type="button"
+              disabled={!product.isAvailable}
+              onClick={handleAdd}
+              className="flex-1 bg-[#B81D24] text-[#FFD100] font-extrabold py-2.5 px-4 rounded-xl hover:bg-[#96141A] disabled:opacity-40 text-sm"
+            >
+              {added ? 'Added!' : 'Add to Cart'}
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    function MandiHouseApp() {
+      const saved = useMemo(() => loadSavedState(), []);
+
+      const [activeView, setActiveView] = useState('storefront');
+      const [authUser, setAuthUser] = useState(null);
+      const [customerUser, setCustomerUser] = useState(null);
+      const [customers, setCustomers] = useState(
+        saved?.customers || [
+          { id: 'cust-1', name: 'Usman Tariq', phone: '0300-7654321', email: 'usman@example.com', password: 'user123', area: 'Nawan Kot Chowk, Khanpur', address: 'House 14, Street 3, Nawan Kot Chowk' }
+        ]
+      );
+      const [customerAuthMode, setCustomerAuthMode] = useState('login');
+      const [customerForm, setCustomerForm] = useState({ name: '', phone: '', email: '', password: '', area: 'Nawan Kot Chowk, Khanpur', address: '' });
+      const [customerAuthError, setCustomerAuthError] = useState('');
+
+      const [loginRoleTab, setLoginRoleTab] = useState('admin');
+      const [loginEmail, setLoginEmail] = useState('');
+      const [loginPassword, setLoginPassword] = useState('');
+      const [loginError, setLoginError] = useState('');
+
+      const [selectedCategory, setSelectedCategory] = useState('All');
+      const [settings, setSettings] = useState(saved?.settings || INITIAL_SETTINGS);
+      const [categories, setCategories] = useState(saved?.categories || INITIAL_CATEGORIES);
+      const [products, setProducts] = useState(saved?.products || INITIAL_PRODUCTS);
+      const [orders, setOrders] = useState(saved?.orders || INITIAL_ORDERS);
+      const [riders, setRiders] = useState(saved?.riders || INITIAL_RIDERS);
+      const [coupons, setCoupons] = useState(saved?.coupons || INITIAL_COUPONS);
+
+      const [cart, setCart] = useState([]);
+      const [cartOpen, setCartOpen] = useState(false);
+      const [toast, setToast] = useState('');
+
+      const [checkoutForm, setCheckoutForm] = useState({
+        customerName: '',
+        customerPhone: '',
+        deliveryArea: 'Nawan Kot Chowk, Khanpur',
+        deliveryAddress: '',
+        paymentMethod: 'Cash on Delivery',
+        transactionRef: ''
+      });
+      const [couponCode, setCouponCode] = useState('');
+      const [appliedCoupon, setAppliedCoupon] = useState(null);
+
+      const [trackOrderNum, setTrackOrderNum] = useState('MH-20261125-4821');
+      const [trackPhone, setTrackPhone] = useState('0300-7654321');
+
+      const [adminTab, setAdminTab] = useState('overview');
+      const [receiptOrder, setReceiptOrder] = useState(null);
+      const [newCategoryName, setNewCategoryName] = useState('');
+      const [paymentNotifications, setPaymentNotifications] = useState(saved?.paymentNotifications || []);
+
+      const [dishForm, setDishForm] = useState({
+        name: '',
+        category: 'Chicken Mandi',
+        description: '',
+        price: '',
+        image: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&w=800&q=80'
+      });
+
+      const [riderForm, setRiderForm] = useState({
+        name: '',
+        phone: '',
+        address: 'Nawan Kot Chowk, Khanpur',
+        loginId: '',
+        password: ''
+      });
+
+      const [couponForm, setCouponForm] = useState({
+        code: '',
+        type: 'percentage',
+        value: '',
+        minOrder: '1000'
+      });
+
+      const notify = (msg) => {
+        setToast(msg);
+        setTimeout(() => setToast(''), 3000);
+      };
+
+      // Persist changes in browser storage so Admin updates stay saved across reloads
+      useEffect(() => {
+        try {
+          localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify({
+              settings,
+              categories,
+              products,
+              orders,
+              riders,
+              coupons,
+              customers,
+              paymentNotifications
+            })
+          );
+        } catch {}
+      }, [settings, categories, products, orders, riders, coupons, customers, paymentNotifications]);
+
+      useEffect(() => {
+        const checkHash = () => {
+          if (window.location.hash === '#/login') {
+            setLoginError('');
+            setActiveView('login');
+          }
+        };
+        checkHash();
+        window.addEventListener('hashchange', checkHash);
+        const onKey = (e) => {
+          if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'l') {
+            e.preventDefault();
+            window.location.hash = '#/login';
+            setActiveView('login');
+          }
+        };
+        window.addEventListener('keydown', onKey);
+        return () => {
+          window.removeEventListener('hashchange', checkHash);
+          window.removeEventListener('keydown', onKey);
+        };
+      }, []);
+
+      const handleStaffLogin = (e) => {
+        e.preventDefault();
+        setLoginError('');
+        const id = loginEmail.trim().toLowerCase();
+        if (loginRoleTab === 'admin') {
+          if (id === 'malikmubeenahmad1@gmail.com' && loginPassword === 'mubeen@123') {
+            setAuthUser({ role: 'admin', email: id, name: 'Malik Mubeen Ahmad' });
+            setActiveView('admin');
+            setLoginEmail('');
+            setLoginPassword('');
+            notify('Admin login successful');
+          } else {
+            setLoginError('Invalid Admin Gmail or Password');
+          }
+        } else {
+          const r = riders.find((item) => item.loginId.toLowerCase() === id && item.password === loginPassword);
+          if (!r) {
+            setLoginError('Invalid Rider Login ID or Password');
+            return;
+          }
+          if (!r.active) {
+            setLoginError('Rider account is deactivated');
+            return;
+          }
+          setAuthUser({ role: 'rider', email: r.loginId, name: r.name, riderId: r.id, code: r.code });
+          setActiveView('rider');
+          setLoginEmail('');
+          setLoginPassword('');
+          notify(`Logged in as ${r.name}`);
+        }
+      };
+
+      const handleCustomerAuth = (e) => {
+        e.preventDefault();
+        setCustomerAuthError('');
+        if (customerAuthMode === 'login') {
+          const found = customers.find(
+            (c) =>
+              (c.email.toLowerCase() === customerForm.email.trim().toLowerCase() ||
+                c.phone.replace(/\D/g, '') === customerForm.email.replace(/\D/g, '')) &&
+              c.password === customerForm.password
+          );
+          if (!found) {
+            setCustomerAuthError('Invalid credentials');
+            return;
+          }
+          setCustomerUser(found);
+          setCheckoutForm((p) => ({
+            ...p,
+            customerName: found.name,
+            customerPhone: found.phone,
+            deliveryArea: found.area,
+            deliveryAddress: found.address
+          }));
+          setActiveView('account');
+          notify(`Welcome, ${found.name}`);
+        } else {
+          const created = {
+            id: `cust-${Date.now()}`,
+            name: customerForm.name.trim(),
+            phone: customerForm.phone.trim(),
+            email: customerForm.email.trim() || `${Date.now()}@customer.pk`,
+            password: customerForm.password,
+            area: customerForm.area,
+            address: customerForm.address
+          };
+          setCustomers((p) => [...p, created]);
+          setCustomerUser(created);
+          setCheckoutForm((p) => ({
+            ...p,
+            customerName: created.name,
+            customerPhone: created.phone,
+            deliveryArea: created.area,
+            deliveryAddress: created.address
+          }));
+          setActiveView('account');
+          notify('Account created');
+        }
+      };
+
+      const handleFileUpload = (file, cb) => {
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          if (typeof reader.result === 'string') cb(reader.result);
+        };
+        reader.readAsDataURL(file);
+      };
+
+      const addToCart = (item) => {
+        setCart((prev) => {
+          const idx = prev.findIndex((i) => i.productId === item.productId && i.variantId === item.variantId);
+          if (idx > -1) {
+            const copy = [...prev];
+            copy[idx].quantity += item.quantity;
+            return copy;
+          }
+          return [...prev, item];
+        });
+        notify(`${item.productName} added to cart`);
+      };
+
+      const subtotal = cart.reduce((s, i) => s + i.unitPrice * i.quantity, 0);
+      const discountAmount = useMemo(() => {
+        if (!appliedCoupon || subtotal < appliedCoupon.minOrder) return 0;
+        return appliedCoupon.type === 'percentage'
+          ? Math.round((subtotal * appliedCoupon.value) / 100)
+          : appliedCoupon.value;
+      }, [appliedCoupon, subtotal]);
+      const deliveryFee = subtotal === 0 || subtotal >= settings.freeDeliveryThreshold ? 0 : settings.deliveryCharge;
+      const grandTotal = Math.max(0, subtotal - discountAmount) + deliveryFee;
+
+      const handlePlaceOrder = (e) => {
+        e.preventDefault();
+        if (cart.length === 0) return;
+        const orderNumber = `MH-20261125-${Math.floor(1000 + Math.random() * 9000)}`;
+        const newOrder = {
+          id: `ord-${Date.now()}`,
+          orderNumber,
+          customerName: checkoutForm.customerName,
+          customerPhone: checkoutForm.customerPhone,
+          deliveryArea: checkoutForm.deliveryArea,
+          deliveryAddress: checkoutForm.deliveryAddress,
+          paymentMethod: checkoutForm.paymentMethod,
+          paymentStatus: checkoutForm.paymentMethod === 'Cash on Delivery' ? 'Pending' : 'Verified',
+          transactionRef: checkoutForm.transactionRef,
+          items: cart.map((c) => ({
+            productName: c.productName,
+            variantName: c.variantName,
+            quantity: c.quantity,
+            totalPrice: c.unitPrice * c.quantity
+          })),
+          subtotal,
+          deliveryFee,
+          discountAmount,
+          grandTotal,
+          status: 'Order Received',
+          riderId: null,
+          createdAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+        setOrders((p) => [newOrder, ...p]);
+        if (checkoutForm.paymentMethod !== 'Cash on Delivery') {
+          setPaymentNotifications((p) => [
+            {
+              id: `pn-${Date.now()}`,
+              orderNumber,
+              customerName: checkoutForm.customerName,
+              method: checkoutForm.paymentMethod,
+              transactionRef: checkoutForm.transactionRef || 'N/A',
+              amount: grandTotal,
+              time: newOrder.createdAt,
+              read: false
+            },
+            ...p
+          ]);
+        }
+        setCart([]);
+        setAppliedCoupon(null);
+        setTrackOrderNum(orderNumber);
+        setTrackPhone(checkoutForm.customerPhone);
+        setActiveView('track');
+        notify(`Order ${orderNumber} placed!`);
+      };
+
+      const updateOrder = (id, patch) => {
+        setOrders((prev) =>
+          prev.map((o) => {
+            if (o.id !== id) return o;
+            const updated = { ...o, ...patch };
+            if (patch.paymentStatus === 'Verified' && o.paymentStatus !== 'Verified') {
+              setPaymentNotifications((pn) => [
+                {
+                  id: `pn-${Date.now()}`,
+                  orderNumber: o.orderNumber,
+                  customerName: o.customerName,
+                  method: o.paymentMethod,
+                  transactionRef: o.transactionRef || 'Cash Collected',
+                  amount: o.grandTotal,
+                  time: 'Just now',
+                  read: false
+                },
+                ...pn
+              ]);
+            }
+            return updated;
+          })
+        );
+        notify('Order updated');
+      };
+
+      const trackedOrder = orders.find(
+        (o) =>
+          o.orderNumber.toUpperCase() === trackOrderNum.trim().toUpperCase() &&
+          o.customerPhone.replace(/\D/g, '').endsWith(trackPhone.replace(/\D/g, '').slice(-7))
+      );
+
+      const visibleProducts = products.filter((p) => selectedCategory === 'All' || p.category === selectedCategory);
+      const totalRevenue = orders.filter((o) => o.status !== 'Cancelled').reduce((s, o) => s + o.grandTotal, 0);
+
+      return (
+        <div className="min-h-screen flex flex-col">
+          {toast && (
+            <div className="fixed bottom-5 right-5 z-50 bg-[#1A0809] text-[#FFD100] border-2 border-[#FFD100] px-4 py-3 rounded-xl font-bold text-xs shadow-xl">
+              {toast}
+            </div>
+          )}
+
+          {/* BAR 1: TOP BRAND BAR */}
+          <header className="sticky top-0 z-40 shadow-lg">
+            <div className="bg-gradient-to-r from-[#9E141A] via-[#B81D24] to-[#7A0E14] text-white border-b border-[#FFD100]/40">
+              <div className="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between gap-4">
+                <button onClick={() => setActiveView('storefront')} className="flex items-center gap-3">
+                  <MandiHouseLogo logoUrl={settings.logoUrl} size="md" />
+                  <span className="text-xl sm:text-2xl font-black text-[#FFD100] tracking-wide whitespace-nowrap">
+                    {settings.restaurantName}
+                  </span>
+                </button>
+                <div className="hidden md:flex items-center gap-4 text-xs font-bold">
+                  <span>{settings.address}</span>
+                  <span className="bg-black/25 border border-[#FFD100]/40 px-3 py-1.5 rounded-lg text-[#FFD100]">
+                    {settings.phone}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* BAR 2: SEPARATE NAVIGATION BAR */}
+            <div className="bg-[#1A0809] border-b-2 border-[#FFD100] text-white">
+              <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between gap-3">
+                <nav className="flex items-center gap-1 sm:gap-2">
+                  <button
+                    onClick={() => setActiveView('storefront')}
+                    className={`px-3.5 py-2 rounded-lg text-xs sm:text-sm font-extrabold ${activeView === 'storefront' ? 'bg-[#B81D24] text-[#FFD100]' : 'text-stone-200 hover:text-[#FFD100]'}`}
+                  >
+                    Home
+                  </button>
+                  <button
+                    onClick={() => setActiveView('menu')}
+                    className={`px-3.5 py-2 rounded-lg text-xs sm:text-sm font-extrabold ${activeView === 'menu' ? 'bg-[#B81D24] text-[#FFD100]' : 'text-stone-200 hover:text-[#FFD100]'}`}
+                  >
+                    Full Menu
+                  </button>
+                  <button
+                    onClick={() => setActiveView('track')}
+                    className={`px-3.5 py-2 rounded-lg text-xs sm:text-sm font-extrabold ${activeView === 'track' ? 'bg-[#B81D24] text-[#FFD100]' : 'text-stone-200 hover:text-[#FFD100]'}`}
+                  >
+                    Track Order
+                  </button>
+                </nav>
+
+                <div className="flex items-center gap-2">
+                  {authUser?.role === 'admin' && (
+                    <button onClick={() => setActiveView('admin')} className="bg-[#FFD100] text-[#1A0809] px-3 py-2 rounded-xl text-xs font-black">
+                      Admin
+                    </button>
+                  )}
+                  {authUser?.role === 'rider' && (
+                    <button onClick={() => setActiveView('rider')} className="bg-[#FFD100] text-[#1A0809] px-3 py-2 rounded-xl text-xs font-black">
+                      Rider
+                    </button>
+                  )}
+                  {authUser && (
+                    <button
+                      onClick={() => {
+                        setAuthUser(null);
+                        setActiveView('storefront');
+                      }}
+                      className="bg-white/10 text-white px-3 py-2 rounded-xl text-xs font-bold"
+                    >
+                      Logout
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setActiveView('account')}
+                    className="bg-white/10 hover:border-[#FFD100] border border-white/15 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-extrabold"
+                  >
+                    {customerUser ? customerUser.name.split(' ')[0] : 'Sign In / Register'}
+                  </button>
+                  <button
+                    onClick={() => setCartOpen(true)}
+                    className="bg-[#FFD100] text-[#1A0809] px-4 py-2 rounded-xl font-black text-xs sm:text-sm"
+                  >
+                    Cart ({cart.reduce((s, i) => s + i.quantity, 0)})
+                  </button>
+                </div>
+              </div>
+            </div>
+          </header>
+
+          {/* HERO & STOREFRONT */}
+          {activeView === 'storefront' && (
+            <main className="flex-1">
+              <section className="relative min-h-[78vh] flex items-center overflow-hidden">
+                <img src={settings.heroCoverUrl} alt="MANDI HOUSE" className="absolute inset-0 w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-r from-[#1A0507]/95 via-[#580A0F]/85 to-black/40" />
+                <div className="relative z-10 max-w-7xl mx-auto px-4 py-16 space-y-6 max-w-2xl">
+                  <div className="flex items-center gap-4">
+                    <MandiHouseLogo logoUrl={settings.logoUrl} size="hero" />
+                    <div className="bg-[#B81D24]/95 border border-[#FFD100] px-4 py-2 rounded-2xl">
+                      <span className="block text-[#FFD100] font-black text-lg">{settings.restaurantName}</span>
+                      <span className="text-xs text-white/90">{settings.address} • {settings.openingHours}</span>
+                    </div>
+                  </div>
+                  <h1 className="text-4xl sm:text-6xl font-black text-white leading-tight">
+                    Experience The Taste of <span className="text-[#FFD100]">Authentic Mandi</span>
+                  </h1>
+                  <p className="text-stone-200 text-base">
+                    Fresh Chicken Sajji, Chicken Karahi, Grill Fish, Seekh Kabab & Royal Zarda prepared over live charcoal.
+                  </p>
+                  <div className="flex gap-3">
+                    <button onClick={() => setActiveView('menu')} className="bg-[#FFD100] text-[#1A0809] font-black px-7 py-3.5 rounded-xl">
+                      Order Now
+                    </button>
+                    <button onClick={() => setActiveView('menu')} className="bg-[#B81D24] text-white border-2 border-[#FFD100] font-extrabold px-7 py-3.5 rounded-xl">
+                      Explore Menu
+                    </button>
+                  </div>
+                </div>
+              </section>
+
+              <section className="max-w-7xl mx-auto px-4 py-14 space-y-8">
+                <h2 className="text-3xl font-black">Signature Menu</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {products.map((p) => (
+                    <ProductCard key={p.id} product={p} onAddToCart={addToCart} />
+                  ))}
+                </div>
+              </section>
+            </main>
+          )}
+
+          {/* FULL MENU */}
+          {activeView === 'menu' && (
+            <main className="flex-1 max-w-7xl mx-auto px-4 py-12 space-y-8 w-full">
+              <h1 className="text-3xl font-black text-[#B81D24]">Full Menu</h1>
+              <div className="flex flex-wrap gap-2">
+                {['All', ...categories].map((c) => (
+                  <button
+                    key={c}
+                    onClick={() => setSelectedCategory(c)}
+                    className={`px-4 py-2 rounded-full text-xs font-extrabold ${selectedCategory === c ? 'bg-[#B81D24] text-[#FFD100]' : 'bg-white border'}`}
+                  >
+                    {c}
+                  </button>
+                ))}
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {visibleProducts.map((p) => (
+                  <ProductCard key={p.id} product={p} onAddToCart={addToCart} />
+                ))}
+              </div>
+            </main>
+          )}
+
+          {/* CHECKOUT */}
+          {activeView === 'checkout' && (
+            <main className="flex-1 max-w-5xl mx-auto px-4 py-12 grid grid-cols-1 lg:grid-cols-12 gap-8 w-full">
+              <form onSubmit={handlePlaceOrder} className="lg:col-span-7 bg-white p-6 rounded-2xl border space-y-4">
+                <h1 className="text-2xl font-black text-[#B81D24]">Checkout</h1>
+                <input required value={checkoutForm.customerName} onChange={(e) => setCheckoutForm({ ...checkoutForm, customerName: e.target.value })} placeholder="Full Name *" className="w-full border rounded-xl p-3 text-sm" />
+                <input required value={checkoutForm.customerPhone} onChange={(e) => setCheckoutForm({ ...checkoutForm, customerPhone: e.target.value })} placeholder="Phone Number *" className="w-full border rounded-xl p-3 text-sm" />
+                <input required value={checkoutForm.deliveryArea} onChange={(e) => setCheckoutForm({ ...checkoutForm, deliveryArea: e.target.value })} placeholder="Area / City *" className="w-full border rounded-xl p-3 text-sm" />
+                <input required value={checkoutForm.deliveryAddress} onChange={(e) => setCheckoutForm({ ...checkoutForm, deliveryAddress: e.target.value })} placeholder="Complete Delivery Address *" className="w-full border rounded-xl p-3 text-sm" />
+
+                <div className="grid grid-cols-3 gap-2">
+                  {['Cash on Delivery', 'Bank Transfer', 'Easypaisa / JazzCash'].map((m) => (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => setCheckoutForm({ ...checkoutForm, paymentMethod: m })}
+                      className={`p-2.5 rounded-xl border text-xs font-extrabold ${checkoutForm.paymentMethod === m ? 'bg-[#B81D24] text-[#FFD100]' : 'bg-stone-50'}`}
+                    >
+                      {m}
+                    </button>
+                  ))}
+                </div>
+
+                {checkoutForm.paymentMethod !== 'Cash on Delivery' && (
+                  <div className="bg-amber-50 border border-amber-300 p-4 rounded-xl text-xs space-y-2">
+                    <p><strong>Bank:</strong> {settings.bankName} — {settings.bankAccountNumber} ({settings.bankAccountTitle})</p>
+                    <p><strong>Easypaisa:</strong> {settings.easypaisaNumber} | <strong>JazzCash:</strong> {settings.jazzcashNumber}</p>
+                    <input required value={checkoutForm.transactionRef} onChange={(e) => setCheckoutForm({ ...checkoutForm, transactionRef: e.target.value })} placeholder="Enter Transaction ID (TID) *" className="w-full border rounded-lg p-2.5 bg-white" />
+                  </div>
+                )}
+
+                <button type="submit" className="w-full bg-[#B81D24] text-[#FFD100] font-black py-3.5 rounded-xl">
+                  Place Order • Rs. {grandTotal.toLocaleString()}
+                </button>
+              </form>
+
+              <div className="lg:col-span-5 bg-white p-6 rounded-2xl border h-fit space-y-3">
+                <h2 className="font-black text-lg">Order Summary</h2>
+                {cart.map((c, idx) => (
+                  <div key={idx} className="flex justify-between text-sm">
+                    <span>{c.quantity}x {c.productName} ({c.variantName})</span>
+                    <span className="font-bold">Rs. {(c.unitPrice * c.quantity).toLocaleString()}</span>
+                  </div>
+                ))}
+                <div className="flex gap-2 pt-2">
+                  <input value={couponCode} onChange={(e) => setCouponCode(e.target.value)} placeholder="Coupon Code" className="flex-1 border rounded-xl px-3 py-2 text-xs uppercase" />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const found = coupons.find((c) => c.code === couponCode.trim().toUpperCase() && c.active);
+                      if (found && subtotal >= found.minOrder) {
+                        setAppliedCoupon(found);
+                        notify(`Applied ${found.code}`);
+                      } else {
+                        notify('Invalid coupon or minimum order not met');
+                      }
+                    }}
+                    className="bg-[#1A0809] text-[#FFD100] px-4 py-2 rounded-xl text-xs font-bold"
+                  >
+                    Apply
+                  </button>
+                </div>
+                <div className="border-t pt-3 space-y-1 text-sm">
+                  <div className="flex justify-between"><span>Subtotal</span><span>Rs. {subtotal.toLocaleString()}</span></div>
+                  <div className="flex justify-between"><span>Delivery</span><span>{deliveryFee === 0 ? 'FREE' : `Rs. ${deliveryFee}`}</span></div>
+                  {discountAmount > 0 && <div className="flex justify-between text-emerald-700 font-bold"><span>Discount</span><span>- Rs. {discountAmount}</span></div>}
+                  <div className="flex justify-between font-black text-base text-[#B81D24] pt-2 border-t"><span>Total</span><span>Rs. {grandTotal.toLocaleString()}</span></div>
+                </div>
+              </div>
+            </main>
+          )}
+
+          {/* TRACK ORDER */}
+          {activeView === 'track' && (
+            <main className="flex-1 max-w-2xl mx-auto px-4 py-12 space-y-6 w-full">
+              <div className="bg-[#B81D24] text-white p-6 rounded-2xl border-b-4 border-[#FFD100] space-y-3">
+                <h1 className="text-2xl font-black text-[#FFD100]">Track Order</h1>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-stone-900">
+                  <input value={trackOrderNum} onChange={(e) => setTrackOrderNum(e.target.value)} className="bg-white rounded-xl px-3 py-2.5 text-sm font-bold" />
+                  <input value={trackPhone} onChange={(e) => setTrackPhone(e.target.value)} className="bg-white rounded-xl px-3 py-2.5 text-sm font-bold" />
+                </div>
+              </div>
+              {trackedOrder && (
+                <div className="bg-white p-6 rounded-2xl border space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="font-black text-lg text-[#B81D24]">{trackedOrder.orderNumber}</span>
+                    <span className="bg-[#FFD100] text-[#1A0809] px-3 py-1 rounded-full text-xs font-black">{trackedOrder.status}</span>
+                  </div>
+                  <p className="text-sm font-bold">{trackedOrder.customerName} • Rs. {trackedOrder.grandTotal.toLocaleString()}</p>
+                </div>
+              )}
+            </main>
+          )}
+
+          {/* CUSTOMER ACCOUNT */}
+          {activeView === 'account' && (
+            <main className="flex-1 max-w-md mx-auto px-4 py-12 w-full">
+              {!customerUser ? (
+                <form onSubmit={handleCustomerAuth} className="bg-white p-6 rounded-2xl border space-y-4">
+                  <div className="flex gap-2">
+                    <button type="button" onClick={() => setCustomerAuthMode('login')} className={`flex-1 py-2 rounded-lg text-xs font-black ${customerAuthMode === 'login' ? 'bg-[#B81D24] text-[#FFD100]' : 'bg-stone-100'}`}>Sign In</button>
+                    <button type="button" onClick={() => setCustomerAuthMode('signup')} className={`flex-1 py-2 rounded-lg text-xs font-black ${customerAuthMode === 'signup' ? 'bg-[#B81D24] text-[#FFD100]' : 'bg-stone-100'}`}>Register</button>
+                  </div>
+                  {customerAuthError && <p className="text-xs text-red-600 font-bold">{customerAuthError}</p>}
+                  {customerAuthMode === 'signup' && (
+                    <input required value={customerForm.name} onChange={(e) => setCustomerForm({ ...customerForm, name: e.target.value })} placeholder="Full Name" className="w-full border rounded-xl p-3 text-sm" />
+                  )}
+                  <input required value={customerForm.email} onChange={(e) => setCustomerForm({ ...customerForm, email: e.target.value })} placeholder="Phone or Email (e.g. 0300-7654321)" className="w-full border rounded-xl p-3 text-sm" />
+                  <input required type="password" value={customerForm.password} onChange={(e) => setCustomerForm({ ...customerForm, password: e.target.value })} placeholder="Password (user123)" className="w-full border rounded-xl p-3 text-sm" />
+                  <button className="w-full bg-[#B81D24] text-[#FFD100] font-black py-3 rounded-xl text-sm">
+                    {customerAuthMode === 'login' ? 'Sign In' : 'Create Account'}
+                  </button>
+                </form>
+              ) : (
+                <div className="bg-white p-6 rounded-2xl border space-y-3">
+                  <h2 className="text-xl font-black">{customerUser.name}</h2>
+                  <p className="text-sm text-stone-600">{customerUser.phone}</p>
+                  <button onClick={() => setCustomerUser(null)} className="bg-stone-900 text-white px-4 py-2 rounded-xl text-xs font-bold">Sign Out</button>
+                </div>
+              )}
+            </main>
+          )}
+
+          {/* SECRET STAFF LOGIN (#/login) */}
+          {activeView === 'login' && (
+            <main className="flex-1 flex items-center justify-center px-4 py-12">
+              <form onSubmit={handleStaffLogin} className="bg-white max-w-md w-full p-7 rounded-3xl border-2 border-[#B81D24] space-y-4 shadow-xl">
+                <div className="flex justify-center"><MandiHouseLogo logoUrl={settings.logoUrl} size="lg" /></div>
+                <div className="grid grid-cols-2 gap-2 bg-stone-100 p-1 rounded-xl">
+                  <button type="button" onClick={() => setLoginRoleTab('admin')} className={`py-2 rounded-lg text-xs font-black ${loginRoleTab === 'admin' ? 'bg-[#B81D24] text-[#FFD100]' : ''}`}>Admin Login</button>
+                  <button type="button" onClick={() => setLoginRoleTab('rider')} className={`py-2 rounded-lg text-xs font-black ${loginRoleTab === 'rider' ? 'bg-[#B81D24] text-[#FFD100]' : ''}`}>Rider Login</button>
+                </div>
+                {loginError && <p className="text-xs text-red-600 font-bold">{loginError}</p>}
+                <input required value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} placeholder={loginRoleTab === 'admin' ? 'malikmubeenahmad1@gmail.com' : 'Rider Login ID'} className="w-full border rounded-xl p-3 text-sm" />
+                <input required type="password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} placeholder="Password" className="w-full border rounded-xl p-3 text-sm" />
+                <button className="w-full bg-[#B81D24] text-[#FFD100] font-black py-3 rounded-xl text-sm">Sign In</button>
+              </form>
+            </main>
+          )}
+
+          {/* ADMIN DASHBOARD */}
+          {activeView === 'admin' && authUser?.role === 'admin' && (
+            <main className="flex-1 max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-12 gap-6 w-full">
+              <aside className="lg:col-span-3 bg-[#1A0809] text-white p-4 rounded-2xl h-fit space-y-1.5">
+                {[
+                  ['overview', 'Overview'],
+                  ['orders', `Orders (${orders.length})`],
+                  ['payments', `Payments (${paymentNotifications.filter((n) => !n.read).length})`],
+                  ['categories', 'Categories'],
+                  ['products', 'Dishes & Photos'],
+                  ['riders', 'Riders & Logins'],
+                  ['coupons', 'Discounts'],
+                  ['settings', 'Accounts & Settings']
+                ].map(([id, label]) => (
+                  <button key={id} onClick={() => setAdminTab(id)} className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-black ${adminTab === id ? 'bg-[#B81D24] text-[#FFD100]' : 'hover:bg-white/10'}`}>
+                    {label}
+                  </button>
+                ))}
+              </aside>
+
+              <section className="lg:col-span-9 space-y-5">
+                {paymentNotifications.some((n) => !n.read) && (
+                  <div className="bg-emerald-950 text-white p-4 rounded-2xl border border-emerald-400 text-xs flex justify-between items-center">
+                    <div>
+                      {paymentNotifications.filter((n) => !n.read).slice(0, 1).map((n) => (
+                        <p key={n.id}><strong>Payment Received:</strong> Rs. {n.amount} for Order {n.orderNumber} via {n.method} (TID: {n.transactionRef})</p>
+                      ))}
+                    </div>
+                    <button onClick={() => setPaymentNotifications((p) => p.map((x) => ({ ...x, read: true })))} className="bg-[#FFD100] text-[#1A0809] px-3 py-1 rounded-lg font-black">Mark Read</button>
+                  </div>
+                )}
+
+                {adminTab === 'overview' && (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                    <div className="bg-white p-5 rounded-2xl border"><p className="text-xs font-bold text-stone-500">Total Orders</p><p className="text-2xl font-black text-[#B81D24]">{orders.length}</p></div>
+                    <div className="bg-white p-5 rounded-2xl border"><p className="text-xs font-bold text-stone-500">Revenue</p><p className="text-2xl font-black text-emerald-700">Rs. {totalRevenue.toLocaleString()}</p></div>
+                    <div className="bg-white p-5 rounded-2xl border"><p className="text-xs font-bold text-stone-500">Menu Dishes</p><p className="text-2xl font-black">{products.length}</p></div>
+                  </div>
+                )}
+
+                {adminTab === 'orders' && (
+                  <div className="space-y-3">
+                    {orders.map((o) => (
+                      <div key={o.id} className="bg-white p-5 rounded-2xl border space-y-3">
+                        <div className="flex justify-between">
+                          <div><p className="font-black text-[#B81D24]">{o.orderNumber}</p><p className="text-xs font-bold">{o.customerName} • {o.customerPhone}</p></div>
+                          <p className="font-black">Rs. {o.grandTotal.toLocaleString()}</p>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <select value={o.status} onChange={(e) => updateOrder(o.id, { status: e.target.value })} className="border rounded-xl px-3 py-2 text-xs font-bold">
+                            {ORDER_STATUSES.map((s) => <option key={s}>{s}</option>)}
+                          </select>
+                          <select value={o.riderId || ''} onChange={(e) => updateOrder(o.id, { riderId: e.target.value || null })} className="border rounded-xl px-3 py-2 text-xs font-bold">
+                            <option value="">Assign Rider</option>
+                            {riders.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
+                          </select>
+                          <button onClick={() => setReceiptOrder(o)} className="ml-auto bg-stone-900 text-[#FFD100] px-3 py-2 rounded-xl text-xs font-bold">Receipt</button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {adminTab === 'payments' && (
+                  <div className="bg-white p-6 rounded-2xl border space-y-3">
+                    <h2 className="font-black text-lg text-[#B81D24]">Payment Ledger</h2>
+                    {orders.map((o) => (
+                      <div key={o.id} className="p-3.5 rounded-xl border bg-stone-50 flex justify-between items-center text-xs">
+                        <div>
+                          <p className="font-black text-[#B81D24]">{o.orderNumber} • {o.customerName}</p>
+                          <p>{o.paymentMethod} {o.transactionRef ? `• TID: ${o.transactionRef}` : ''}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-black text-sm text-emerald-700">Rs. {o.grandTotal.toLocaleString()}</span>
+                          {o.paymentStatus !== 'Verified' && (
+                            <button onClick={() => updateOrder(o.id, { paymentStatus: 'Verified' })} className="bg-emerald-600 text-white px-2.5 py-1 rounded-lg font-bold">Confirm</button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {adminTab === 'categories' && (
+                  <div className="bg-white p-6 rounded-2xl border space-y-4">
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        if (!newCategoryName.trim()) return;
+                        setCategories((p) => [...p, newCategoryName.trim()]);
+                        setNewCategoryName('');
+                        notify('Category added');
+                      }}
+                      className="flex gap-2"
+                    >
+                      <input required value={newCategoryName} onChange={(e) => setNewCategoryName(e.target.value)} placeholder="New Category Name" className="flex-1 border rounded-xl p-2.5 text-sm" />
+                      <button className="bg-[#B81D24] text-[#FFD100] px-5 py-2.5 rounded-xl text-xs font-black">+ Add</button>
+                    </form>
+                    <div className="flex flex-wrap gap-2">
+                      {categories.map((c) => (
+                        <span key={c} className="bg-stone-100 border px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2">
+                          {c}
+                          <button onClick={() => setCategories((p) => p.filter((x) => x !== c))} className="text-red-600 font-black">x</button>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {adminTab === 'products' && (
+                  <div className="space-y-4">
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        setProducts((p) => [
+                          {
+                            id: `prod-${Date.now()}`,
+                            name: dishForm.name,
+                            category: dishForm.category,
+                            description: dishForm.description || 'Freshly prepared at MANDI HOUSE.',
+                            image: dishForm.image,
+                            isAvailable: true,
+                            isBestSeller: true,
+                            variants: [{ id: `v-${Date.now()}`, name: 'Standard', price: Number(dishForm.price) }]
+                          },
+                          ...p
+                        ]);
+                        setDishForm({ name: '', category: categories[0] || 'Chicken Mandi', description: '', price: '', image: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&w=800&q=80' });
+                        notify('Dish added');
+                      }}
+                      className="bg-white p-6 rounded-2xl border space-y-3"
+                    >
+                      <h3 className="font-black text-base text-[#B81D24]">Add Dish & Upload Photo</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <input required value={dishForm.name} onChange={(e) => setDishForm({ ...dishForm, name: e.target.value })} placeholder="Dish Name" className="border rounded-xl p-2.5 text-sm" />
+                        <select value={dishForm.category} onChange={(e) => setDishForm({ ...dishForm, category: e.target.value })} className="border rounded-xl p-2.5 text-sm bg-white">
+                          {categories.map((c) => <option key={c}>{c}</option>)}
+                        </select>
+                        <input required type="number" value={dishForm.price} onChange={(e) => setDishForm({ ...dishForm, price: e.target.value })} placeholder="Price (PKR)" className="border rounded-xl p-2.5 text-sm" />
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <img src={dishForm.image} alt="Preview" className="w-14 h-14 rounded-xl object-cover border" />
+                        <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e.target.files?.[0], (u) => setDishForm((d) => ({ ...d, image: u })))} className="text-xs" />
+                      </div>
+                      <button className="bg-[#B81D24] text-[#FFD100] px-5 py-2.5 rounded-xl text-xs font-black">+ Publish Dish</button>
+                    </form>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {products.map((p) => (
+                        <div key={p.id} className="bg-white p-3.5 rounded-xl border flex justify-between items-center">
+                          <div className="flex items-center gap-3">
+                            <img src={p.image} alt={p.name} className="w-12 h-12 rounded-lg object-cover" />
+                            <div><p className="font-bold text-sm">{p.name}</p><p className="text-xs text-stone-500">{p.category} • Rs. {p.variants[0]?.price}</p></div>
+                          </div>
+                          <button onClick={() => setProducts((prev) => prev.filter((x) => x.id !== p.id))} className="text-red-600 text-xs font-bold">Delete</button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {adminTab === 'riders' && (
+                  <div className="space-y-4">
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        setRiders((r) => [
+                          ...r,
+                          {
+                            id: `r-${Date.now()}`,
+                            code: `MH-R0${r.length + 1}`,
+                            name: riderForm.name,
+                            phone: riderForm.phone,
+                            address: riderForm.address,
+                            loginId: riderForm.loginId.trim(),
+                            password: riderForm.password,
+                            active: true
+                          }
+                        ]);
+                        setRiderForm({ name: '', phone: '', address: 'Nawan Kot Chowk, Khanpur', loginId: '', password: '' });
+                        notify('Rider & Login ID created');
+                      }}
+                      className="bg-white p-6 rounded-2xl border space-y-3"
+                    >
+                      <h3 className="font-black text-base text-[#B81D24]">Add Rider & Login ID</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <input required value={riderForm.name} onChange={(e) => setRiderForm({ ...riderForm, name: e.target.value })} placeholder="Rider Name" className="border rounded-xl p-2.5 text-sm" />
+                        <input required value={riderForm.phone} onChange={(e) => setRiderForm({ ...riderForm, phone: e.target.value })} placeholder="Rider Phone" className="border rounded-xl p-2.5 text-sm" />
+                        <input required value={riderForm.loginId} onChange={(e) => setRiderForm({ ...riderForm, loginId: e.target.value })} placeholder="Rider Login ID" className="border rounded-xl p-2.5 text-sm" />
+                        <input required value={riderForm.password} onChange={(e) => setRiderForm({ ...riderForm, password: e.target.value })} placeholder="Rider Password" className="border rounded-xl p-2.5 text-sm" />
+                      </div>
+                      <button className="bg-[#B81D24] text-[#FFD100] px-5 py-2.5 rounded-xl text-xs font-black">+ Create Rider</button>
+                    </form>
+
+                    {riders.map((r) => (
+                      <div key={r.id} className="bg-white p-4 rounded-xl border flex justify-between items-center text-xs">
+                        <div><p className="font-black text-sm">{r.name} ({r.code})</p><p>ID: <strong>{r.loginId}</strong> • Pass: {r.password}</p></div>
+                        <button onClick={() => setRiders((prev) => prev.map((x) => x.id === r.id ? { ...x, active: !x.active } : x))} className="px-3 py-1 rounded-full font-bold bg-stone-100">
+                          {r.active ? 'Active' : 'Disabled'}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {adminTab === 'coupons' && (
+                  <div className="bg-white p-6 rounded-2xl border space-y-4">
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        setCoupons((c) => [{ id: `c-${Date.now()}`, code: couponForm.code.toUpperCase(), type: couponForm.type, value: Number(couponForm.value), minOrder: Number(couponForm.minOrder) || 0, active: true }, ...c]);
+                        setCouponForm({ code: '', type: 'percentage', value: '', minOrder: '1000' });
+                        notify('Coupon created');
+                      }}
+                      className="grid grid-cols-1 sm:grid-cols-4 gap-2"
+                    >
+                      <input required value={couponForm.code} onChange={(e) => setCouponForm({ ...couponForm, code: e.target.value })} placeholder="CODE" className="border rounded-xl p-2.5 text-sm uppercase" />
+                      <select value={couponForm.type} onChange={(e) => setCouponForm({ ...couponForm, type: e.target.value })} className="border rounded-xl p-2.5 text-sm bg-white">
+                        <option value="percentage">Percentage (%)</option>
+                        <option value="fixed">Fixed PKR</option>
+                      </select>
+                      <input required type="number" value={couponForm.value} onChange={(e) => setCouponForm({ ...couponForm, value: e.target.value })} placeholder="Value" className="border rounded-xl p-2.5 text-sm" />
+                      <button className="bg-[#B81D24] text-[#FFD100] rounded-xl text-xs font-black">+ Add</button>
+                    </form>
+                    <div className="flex flex-wrap gap-2">
+                      {coupons.map((c) => (
+                        <span key={c.id} className="bg-amber-50 border border-amber-300 px-3 py-1.5 rounded-xl text-xs font-black">
+                          {c.code} ({c.type === 'percentage' ? `${c.value}%` : `Rs.${c.value}`})
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {adminTab === 'settings' && (
+                  <div className="bg-white p-6 rounded-2xl border space-y-4 text-sm">
+                    <div className="flex flex-wrap justify-between items-center gap-2 border-b pb-3">
+                      <h2 className="font-black text-lg text-[#B81D24]">Payment Accounts & Timetable</h2>
+                      <button
+                        type="button"
+                        onClick={() => setSettings({ ...settings, isStoreOpen: !settings.isStoreOpen })}
+                        className={`px-4 py-1.5 rounded-xl text-xs font-black text-white ${settings.isStoreOpen ? 'bg-emerald-600' : 'bg-red-700'}`}
+                      >
+                        {settings.isStoreOpen ? 'Status: OPEN' : 'Status: CLOSED'}
+                      </button>
+                    </div>
+
+                    <div className="p-4 rounded-xl bg-amber-50 border border-amber-300 space-y-3">
+                      <div className="flex flex-wrap justify-between items-center gap-2">
+                        <p className="font-black text-xs uppercase text-[#B81D24]">Daily Open & Close Timetable</p>
+                        <label className="flex items-center gap-2 text-xs font-bold cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={!!settings.autoScheduleHours}
+                            onChange={(e) => setSettings({ ...settings, autoScheduleHours: e.target.checked })}
+                          />
+                          Auto-follow Open/Close Timetable
+                        </label>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                          <label className="block text-[11px] font-extrabold uppercase mb-1">Opening Time</label>
+                          <input
+                            type="time"
+                            value={settings.openTime || '12:00'}
+                            onChange={(e) => {
+                              const nextOpen = e.target.value;
+                              setSettings({
+                                ...settings,
+                                openTime: nextOpen,
+                                openingHours: `${nextOpen} - ${settings.closeTime || '02:00'}`
+                              });
+                            }}
+                            className="w-full border rounded-xl p-2.5 bg-white font-bold"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-extrabold uppercase mb-1">Closing Time</label>
+                          <input
+                            type="time"
+                            value={settings.closeTime || '02:00'}
+                            onChange={(e) => {
+                              const nextClose = e.target.value;
+                              setSettings({
+                                ...settings,
+                                closeTime: nextClose,
+                                openingHours: `${settings.openTime || '12:00'} - ${nextClose}`
+                              });
+                            }}
+                            className="w-full border rounded-xl p-2.5 bg-white font-bold"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-extrabold uppercase mb-1">Display Timetable Label</label>
+                          <input
+                            value={settings.openingHours}
+                            onChange={(e) => setSettings({ ...settings, openingHours: e.target.value })}
+                            placeholder="12:00 PM - 02:00 AM"
+                            className="w-full border rounded-xl p-2.5 bg-white font-bold"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <input value={settings.bankName} onChange={(e) => setSettings({ ...settings, bankName: e.target.value })} placeholder="Bank Name" className="border rounded-xl p-2.5" />
+                      <input value={settings.bankAccountNumber} onChange={(e) => setSettings({ ...settings, bankAccountNumber: e.target.value })} placeholder="Bank Account / IBAN" className="border rounded-xl p-2.5" />
+                      <input value={settings.easypaisaNumber} onChange={(e) => setSettings({ ...settings, easypaisaNumber: e.target.value })} placeholder="Easypaisa Number" className="border rounded-xl p-2.5" />
+                      <input value={settings.jazzcashNumber} onChange={(e) => setSettings({ ...settings, jazzcashNumber: e.target.value })} placeholder="JazzCash Number" className="border rounded-xl p-2.5" />
+                    </div>
+                  </div>
+                )}
+              </section>
+            </main>
+          )}
+
+          {/* RIDER PORTAL */}
+          {activeView === 'rider' && authUser?.role === 'rider' && (
+            <main className="flex-1 max-w-2xl mx-auto px-4 py-10 space-y-4 w-full">
+              <div className="bg-[#1A0809] text-white p-5 rounded-2xl border-b-4 border-[#FFD100]">
+                <h1 className="text-xl font-black text-[#FFD100]">Rider Portal • {authUser.name}</h1>
+              </div>
+              {orders.filter((o) => o.riderId === authUser.riderId).map((o) => (
+                <div key={o.id} className="bg-white p-5 rounded-2xl border space-y-3">
+                  <div className="flex justify-between font-black">
+                    <span className="text-[#B81D24]">{o.orderNumber}</span>
+                    <span>Rs. {o.grandTotal.toLocaleString()}</span>
+                  </div>
+                  <p className="text-sm font-bold">{o.customerName} • {o.deliveryAddress}</p>
+                  <div className="flex gap-2">
+                    <button onClick={() => updateOrder(o.id, { status: 'Out for Delivery' })} className="bg-amber-500 text-stone-950 px-4 py-2 rounded-xl text-xs font-black">Picked Up</button>
+                    <button onClick={() => updateOrder(o.id, { status: 'Delivered', paymentStatus: 'Verified' })} className="bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-black">Delivered</button>
+                  </div>
+                </div>
+              ))}
+            </main>
+          )}
+
+          {/* CART DRAWER */}
+          {cartOpen && (
+            <div className="fixed inset-0 z-50 bg-black/60 flex justify-end">
+              <div className="bg-white w-full max-w-md h-full p-5 flex flex-col justify-between">
+                <div className="space-y-3 overflow-y-auto">
+                  <div className="flex justify-between items-center border-b pb-3">
+                    <h2 className="font-black text-lg text-[#B81D24]">Cart</h2>
+                    <button onClick={() => setCartOpen(false)} className="font-black text-lg">X</button>
+                  </div>
+                  {cart.length === 0 ? (
+                    <p className="text-sm text-stone-500 py-10 text-center">Cart is empty</p>
+                  ) : (
+                    cart.map((c, i) => (
+                      <div key={i} className="flex justify-between items-center border-b pb-2 text-sm">
+                        <span>{c.quantity}x {c.productName} ({c.variantName})</span>
+                        <span className="font-bold">Rs. {(c.unitPrice * c.quantity).toLocaleString()}</span>
+                      </div>
+                    ))
+                  )}
+                </div>
+                {cart.length > 0 && (
+                  <button
+                    onClick={() => {
+                      setCartOpen(false);
+                      setActiveView('checkout');
+                    }}
+                    className="w-full bg-[#B81D24] text-[#FFD100] font-black py-3 rounded-xl"
+                  >
+                    Checkout • Rs. {subtotal.toLocaleString()}
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* RECEIPT MODAL */}
+          {receiptOrder && (
+            <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
+              <div className="bg-white max-w-sm w-full p-6 rounded-2xl space-y-3 font-mono text-xs">
+                <h3 className="font-black text-center text-base">{settings.restaurantName}</h3>
+                <p>Order #: {receiptOrder.orderNumber}</p>
+                <p>Customer: {receiptOrder.customerName} ({receiptOrder.customerPhone})</p>
+                <p className="font-black text-sm border-t pt-2">Total: Rs. {receiptOrder.grandTotal}</p>
+                <div className="flex gap-2 pt-2">
+                  <button onClick={() => window.print()} className="flex-1 bg-[#B81D24] text-[#FFD100] py-2 rounded-lg font-sans font-bold">Print</button>
+                  <button onClick={() => setReceiptOrder(null)} className="flex-1 bg-stone-200 py-2 rounded-lg font-sans font-bold">Close</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* FOOTER */}
+          <footer className="bg-[#1A0809] text-stone-300 border-t-4 border-[#FFD100] mt-12">
+            <div className="max-w-7xl mx-auto px-4 py-8 flex flex-wrap justify-between items-center gap-4 text-xs">
+              <div className="flex items-center gap-3">
+                <MandiHouseLogo logoUrl={settings.logoUrl} size="md" />
+                <div>
+                  <p className="font-black text-base text-[#FFD100]">{settings.restaurantName}</p>
+                  <p className="text-stone-400">{settings.address} • {settings.phone}</p>
+                </div>
+              </div>
+              <div className="flex gap-4 font-bold">
+                <button onClick={() => setActiveView('storefront')} className="hover:text-[#FFD100]">Home</button>
+                <button onClick={() => setActiveView('menu')} className="hover:text-[#FFD100]">Full Menu</button>
+                <button onClick={() => setActiveView('track')} className="hover:text-[#FFD100]">Track Order</button>
+                <button onClick={() => setActiveView('account')} className="hover:text-[#FFD100]">Customer Login</button>
+              </div>
+            </div>
+          </footer>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<MandiHouseApp />);
+  </script>
+</body>
+</html>
