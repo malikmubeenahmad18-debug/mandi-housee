@@ -377,6 +377,21 @@
         } catch {}
       }, [settings, categories, products, orders, riders, coupons, customers, paymentNotifications]);
 
+      // Sync orders across browser tabs/windows in real time
+      useEffect(() => {
+        const handleStorageSync = (e) => {
+          if (e.key !== STORAGE_KEY || !e.newValue) return;
+          try {
+            const parsed = JSON.parse(e.newValue);
+            if (Array.isArray(parsed?.orders)) setOrders(parsed.orders);
+            if (Array.isArray(parsed?.paymentNotifications)) setPaymentNotifications(parsed.paymentNotifications);
+            if (parsed?.settings) setSettings(parsed.settings);
+          } catch {}
+        };
+        window.addEventListener('storage', handleStorageSync);
+        return () => window.removeEventListener('storage', handleStorageSync);
+      }, []);
+
       useEffect(() => {
         const checkHash = () => {
           if (window.location.hash === '#/login') {
@@ -560,8 +575,9 @@
         setAppliedCoupon(null);
         setTrackOrderNum(orderNumber);
         setTrackPhone(checkoutForm.customerPhone);
+        setAdminTab('orders');
         setActiveView('track');
-        notify(`Order ${orderNumber} placed!`);
+        notify(`Order ${orderNumber} placed & sent to Admin!`);
       };
 
       const updateOrder = (id, patch) => {
@@ -850,28 +866,55 @@
 
           {/* CUSTOMER ACCOUNT */}
           {activeView === 'account' && (
-            <main className="flex-1 max-w-md mx-auto px-4 py-12 w-full">
+            <main className="flex-1 max-w-4xl mx-auto px-4 py-12 w-full">
               {!customerUser ? (
-                <form onSubmit={handleCustomerAuth} className="bg-white p-6 rounded-2xl border space-y-4">
+                <form onSubmit={handleCustomerAuth} className="bg-white max-w-md mx-auto p-6 rounded-2xl border space-y-4 shadow-sm">
                   <div className="flex gap-2">
-                    <button type="button" onClick={() => setCustomerAuthMode('login')} className={`flex-1 py-2 rounded-lg text-xs font-black ${customerAuthMode === 'login' ? 'bg-[#B81D24] text-[#FFD100]' : 'bg-stone-100'}`}>Sign In</button>
-                    <button type="button" onClick={() => setCustomerAuthMode('signup')} className={`flex-1 py-2 rounded-lg text-xs font-black ${customerAuthMode === 'signup' ? 'bg-[#B81D24] text-[#FFD100]' : 'bg-stone-100'}`}>Register</button>
+                    <button type="button" onClick={() => { setCustomerAuthMode('login'); setCustomerAuthError(''); }} className={`flex-1 py-2 rounded-lg text-xs font-black ${customerAuthMode === 'login' ? 'bg-[#B81D24] text-[#FFD100]' : 'bg-stone-100'}`}>Sign In</button>
+                    <button type="button" onClick={() => { setCustomerAuthMode('signup'); setCustomerAuthError(''); }} className={`flex-1 py-2 rounded-lg text-xs font-black ${customerAuthMode === 'signup' ? 'bg-[#B81D24] text-[#FFD100]' : 'bg-stone-100'}`}>Register</button>
                   </div>
                   {customerAuthError && <p className="text-xs text-red-600 font-bold">{customerAuthError}</p>}
                   {customerAuthMode === 'signup' && (
-                    <input required value={customerForm.name} onChange={(e) => setCustomerForm({ ...customerForm, name: e.target.value })} placeholder="Full Name" className="w-full border rounded-xl p-3 text-sm" />
+                    <>
+                      <input required value={customerForm.name} onChange={(e) => setCustomerForm({ ...customerForm, name: e.target.value })} placeholder="Full Name *" className="w-full border rounded-xl p-3 text-sm" />
+                      <input required value={customerForm.phone} onChange={(e) => setCustomerForm({ ...customerForm, phone: e.target.value })} placeholder="Phone Number (e.g. 0300-1234567) *" className="w-full border rounded-xl p-3 text-sm" />
+                      <input value={customerForm.area} onChange={(e) => setCustomerForm({ ...customerForm, area: e.target.value })} placeholder="Area / City" className="w-full border rounded-xl p-3 text-sm" />
+                      <input value={customerForm.address} onChange={(e) => setCustomerForm({ ...customerForm, address: e.target.value })} placeholder="Saved Delivery Address" className="w-full border rounded-xl p-3 text-sm" />
+                    </>
                   )}
-                  <input required value={customerForm.email} onChange={(e) => setCustomerForm({ ...customerForm, email: e.target.value })} placeholder="Phone or Email (e.g. 0300-7654321)" className="w-full border rounded-xl p-3 text-sm" />
-                  <input required type="password" value={customerForm.password} onChange={(e) => setCustomerForm({ ...customerForm, password: e.target.value })} placeholder="Password (user123)" className="w-full border rounded-xl p-3 text-sm" />
+                  <input required value={customerForm.email} onChange={(e) => setCustomerForm({ ...customerForm, email: e.target.value })} placeholder={customerAuthMode === 'login' ? 'Phone or Email (e.g. 0300-7654321)' : 'Email (Optional)'} className="w-full border rounded-xl p-3 text-sm" />
+                  <input required type="password" value={customerForm.password} onChange={(e) => setCustomerForm({ ...customerForm, password: e.target.value })} placeholder="Password (demo: user123)" className="w-full border rounded-xl p-3 text-sm" />
                   <button className="w-full bg-[#B81D24] text-[#FFD100] font-black py-3 rounded-xl text-sm">
                     {customerAuthMode === 'login' ? 'Sign In' : 'Create Account'}
                   </button>
                 </form>
               ) : (
-                <div className="bg-white p-6 rounded-2xl border space-y-3">
-                  <h2 className="text-xl font-black">{customerUser.name}</h2>
-                  <p className="text-sm text-stone-600">{customerUser.phone}</p>
-                  <button onClick={() => setCustomerUser(null)} className="bg-stone-900 text-white px-4 py-2 rounded-xl text-xs font-bold">Sign Out</button>
+                <div className="bg-white p-6 rounded-2xl border space-y-4">
+                  <div className="flex flex-wrap justify-between items-center gap-3 border-b pb-3">
+                    <div>
+                      <h2 className="text-xl font-black">{customerUser.name}</h2>
+                      <p className="text-sm text-stone-600">{customerUser.phone} • {customerUser.address || customerUser.area}</p>
+                    </div>
+                    <button onClick={() => setCustomerUser(null)} className="bg-stone-900 text-white px-4 py-2 rounded-xl text-xs font-bold">Sign Out</button>
+                  </div>
+                  <h3 className="font-black text-base">My Recent Orders</h3>
+                  {orders.filter((o) => o.customerPhone.replace(/\D/g, '').slice(-7) === customerUser.phone.replace(/\D/g, '').slice(-7)).length === 0 ? (
+                    <p className="text-xs text-stone-500">No orders placed yet.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {orders
+                        .filter((o) => o.customerPhone.replace(/\D/g, '').slice(-7) === customerUser.phone.replace(/\D/g, '').slice(-7))
+                        .map((o) => (
+                          <div key={o.id} className="p-3 rounded-xl border bg-stone-50 flex justify-between items-center text-xs">
+                            <div>
+                              <span className="font-black text-[#B81D24]">{o.orderNumber}</span>
+                              <span className="ml-2 font-bold">{o.status}</span>
+                            </div>
+                            <span className="font-black">Rs. {o.grandTotal.toLocaleString()}</span>
+                          </div>
+                        ))}
+                    </div>
+                  )}
                 </div>
               )}
             </main>
@@ -936,11 +979,37 @@
 
                 {adminTab === 'orders' && (
                   <div className="space-y-3">
-                    {orders.map((o) => (
-                      <div key={o.id} className="bg-white p-5 rounded-2xl border space-y-3">
+                    <div className="bg-white px-4 py-3 rounded-2xl border flex items-center justify-between text-xs">
+                      <span className="font-black text-[#B81D24]">All Customer Orders ({orders.length})</span>
+                      <span className="text-stone-500">Latest customer orders appear at the top</span>
+                    </div>
+                    {orders.map((o, idx) => (
+                      <div key={o.id} className={`bg-white p-5 rounded-2xl border space-y-3 ${idx === 0 ? 'border-[#B81D24] ring-2 ring-[#FFD100]/60' : ''}`}>
                         <div className="flex justify-between">
-                          <div><p className="font-black text-[#B81D24]">{o.orderNumber}</p><p className="text-xs font-bold">{o.customerName} • {o.customerPhone}</p></div>
-                          <p className="font-black">Rs. {o.grandTotal.toLocaleString()}</p>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <p className="font-black text-[#B81D24]">{o.orderNumber}</p>
+                              {idx === 0 && (
+                                <span className="bg-[#FFD100] text-[#1A0809] text-[10px] font-black px-2 py-0.5 rounded-full">
+                                  LATEST ORDER
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs font-bold">{o.customerName} • {o.customerPhone}</p>
+                            <p className="text-[11px] text-stone-500">{o.deliveryAddress} ({o.deliveryArea})</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-black">Rs. {o.grandTotal.toLocaleString()}</p>
+                            <p className="text-[11px] font-bold text-stone-500">{o.paymentMethod}</p>
+                          </div>
+                        </div>
+                        <div className="text-xs bg-stone-50 p-2.5 rounded-xl space-y-1">
+                          {o.items?.map((item, i) => (
+                            <div key={i} className="flex justify-between">
+                              <span>{item.quantity}x {item.productName} ({item.variantName})</span>
+                              <span className="font-bold">Rs. {item.totalPrice}</span>
+                            </div>
+                          ))}
                         </div>
                         <div className="flex flex-wrap gap-2">
                           <select value={o.status} onChange={(e) => updateOrder(o.id, { status: e.target.value })} className="border rounded-xl px-3 py-2 text-xs font-bold">
